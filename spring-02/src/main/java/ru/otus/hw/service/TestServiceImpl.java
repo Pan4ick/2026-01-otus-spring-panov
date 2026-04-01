@@ -9,7 +9,9 @@ import ru.otus.hw.domain.TestResult;
 
 import java.util.List;
 
-import static ru.otus.hw.helpers.StringsStorage.*;
+import static ru.otus.hw.helpers.StringsStorage.EMPTY_LINE;
+import static ru.otus.hw.helpers.StringsStorage.MESSAGE_TO_ENTER;
+import static ru.otus.hw.helpers.StringsStorage.TEST_MESSAGE;
 
 @RequiredArgsConstructor
 @Service
@@ -21,7 +23,7 @@ public class TestServiceImpl implements TestService {
 
     @Override
     public TestResult executeTestFor(Student student) {
-        ioService.printLine("");
+        ioService.printLine(EMPTY_LINE);
         ioService.printFormattedLine(TEST_MESSAGE);
         var questions = questionDao.findAll();
         var testResult = new TestResult(student);
@@ -33,11 +35,10 @@ public class TestServiceImpl implements TestService {
             }
             for (Answer answer : question.answers()) {
                 ioService.printFormattedLine("- %s", answer.text());
-
             }
             String answerStr = ioService.readStringWithPrompt(MESSAGE_TO_ENTER);
             var isAnswerValid = question.answers().stream()
-                    .anyMatch(answer -> answer.text().equals(answerStr));
+                    .anyMatch(answer -> answer.isCorrect() && answer.text().equals(answerStr));
             ioService.printLine(EMPTY_LINE);
             testResult.applyAnswer(question, isAnswerValid);
         }

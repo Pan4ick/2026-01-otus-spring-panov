@@ -2,23 +2,26 @@ package ru.otus.hw.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
 
-@PropertySource("classpath:application.properties")
-@Configuration
+@Component
 @Data
 public class AppProperties implements TestConfig, TestFileNameProvider, StudentAgeConfig {
 
-    @Value("${test.rightAnswersCountToPass}")
     private int rightAnswersCountToPass;
 
-    @Value("${test.fileName}")
     private String testFileName;
 
-    @Value("${student.maxAge}")
     private int maxStudentAge;
 
-    @Value("${student.minAge}")
     private int minStudentAge;
+
+    public AppProperties(@Value("${test.rightAnswersCountToPass}") int rightAnswersCountToPass,
+                         @Value("${test.fileName}") String testFileName, @Value("${student.maxAge}") int maxStudentAge,
+                         @Value("${student.minAge}") int minStudentAge) {
+        this.rightAnswersCountToPass = rightAnswersCountToPass;
+        this.testFileName = testFileName;
+        this.maxStudentAge = maxStudentAge;
+        this.minStudentAge = minStudentAge;
+    }
 }

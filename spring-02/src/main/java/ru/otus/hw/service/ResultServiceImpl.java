@@ -5,7 +5,11 @@ import org.springframework.stereotype.Service;
 import ru.otus.hw.config.TestConfig;
 import ru.otus.hw.domain.TestResult;
 
-import static ru.otus.hw.helpers.StringsStorage.*;
+import static ru.otus.hw.helpers.StringsStorage.EMPTY_LINE;
+import static ru.otus.hw.helpers.StringsStorage.FAILED_TEST_OUTPUT;
+import static ru.otus.hw.helpers.StringsStorage.PASSED_TEST_OUTPUT;
+import static ru.otus.hw.helpers.StringsStorage.STUDENT_OUTPUT;
+import static ru.otus.hw.helpers.StringsStorage.TEST_RESULTS_OUTPUT;
 
 @RequiredArgsConstructor
 @Service

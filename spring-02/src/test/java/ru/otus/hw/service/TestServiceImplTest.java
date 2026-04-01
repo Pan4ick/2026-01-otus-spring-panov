@@ -9,13 +9,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.otus.hw.dao.QuestionDao;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
-import ru.otus.hw.service.IOService;
-import ru.otus.hw.service.TestServiceImpl;
+import ru.otus.hw.domain.Student;
+import ru.otus.hw.domain.TestResult;
 
 import java.util.List;
 
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static ru.otus.hw.helpers.StringsStorage.MESSAGE_TO_ENTER;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TestServiceImpl должен")
@@ -30,40 +33,63 @@ public class TestServiceImplTest {
     private TestServiceImpl testService;
 
     @Test
-    @DisplayName("выводить все вопросы с ответами, если они есть")
-    void shouldPrintAllQuestionsWithAnswers() {
+    @DisplayName("сформировать класс TestResult с правильными ответами")
+    void shouldMakeTestResultClassWithRightAnswers() {
         List<Question> questions = List.of(
                 new Question("What is Java?",
                         List.of(new Answer("Programming language", true),
-                                new Answer("Platform", true))),
+                                new Answer("SDK", false),
+                                new Answer("I dont know", false))),
                 new Question("What is JVM?",
-                        List.of(new Answer("Java Virtual Machine", true)))
+                        List.of(new Answer("Java Virtual Machine", true),
+                                new Answer("I dont know", false)))
         );
-        given(questionDao.findAll()).willReturn(questions);
 
-        testService.executeTest();
+        Student student = new Student("Alex", "Panov", 12);
 
-        verify(ioService, times(3)).printLine("");
-        verify(ioService).printFormattedLine("Please answer the questions below%n");
-        verify(ioService).printLine("What is Java?");
-        verify(ioService).printLine("What is JVM?");
-        verify(ioService).printFormattedLine("- %s", "Programming language");
-        verify(ioService).printFormattedLine("- %s", "Platform");
-        verify(ioService).printFormattedLine("- %s", "Java Virtual Machine");
+        when(questionDao.findAll()).thenReturn(questions);
+        when(ioService.readStringWithPrompt(MESSAGE_TO_ENTER))
+                .thenReturn("Programming language")
+                .thenReturn("Java Virtual Machine");
+
+        TestResult result = testService.executeTestFor(student);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStudent()).isEqualTo(student);
+        assertThat(result.getAnsweredQuestions()).hasSize(2);
+        assertThat(result.getRightAnswersCount()).isEqualTo(2);
+
+        verify(ioService, times(2)).readStringWithPrompt(MESSAGE_TO_ENTER);
     }
 
     @Test
-    @DisplayName("корректно обрабатывать вопросы без ответов")
-    void shouldHandleQuestionsWithoutAnswers() {
-        Question questionWithoutAnswers = new Question("Question without answers?", null);
-        given(questionDao.findAll()).willReturn(List.of(questionWithoutAnswers));
+    @DisplayName("сформировать класс TestResult с неправильными ответами")
+    void shouldMakeTestResultClassWithWrongAnswers() {
+        List<Question> questions = List.of(
+                new Question("What is Java?",
+                        List.of(new Answer("Programming language", true),
+                                new Answer("SDK", false),
+                                new Answer("I dont know", false))),
+                new Question("What is JVM?",
+                        List.of(new Answer("Java Virtual Machine", true),
+                                new Answer("I dont know", false)))
+        );
 
-        testService.executeTest();
+        Student student = new Student("Alex", "Panov", 23);
 
-        verify(ioService, times(2)).printLine("");
-        verify(ioService).printFormattedLine("Please answer the questions below%n");
-        verify(ioService).printLine("Question without answers?");
-        verify(ioService, never()).printFormattedLine(eq("- %s"), any());
+        when(questionDao.findAll()).thenReturn(questions);
+        when(ioService.readStringWithPrompt(MESSAGE_TO_ENTER))
+                .thenReturn("I dont know")
+                .thenReturn("Book");
+
+        TestResult result = testService.executeTestFor(student);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStudent()).isEqualTo(student);
+        assertThat(result.getAnsweredQuestions()).hasSize(2);
+        assertThat(result.getRightAnswersCount()).isEqualTo(0);
+
+        verify(ioService, times(2)).readStringWithPrompt(MESSAGE_TO_ENTER);
     }
 
 }
